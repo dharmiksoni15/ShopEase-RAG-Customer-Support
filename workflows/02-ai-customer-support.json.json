@@ -1,0 +1,122 @@
+
+{
+  "name": "02 - ShopEase AI Customer Support",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [-608, -32],
+      "id": "00000000-0000-4000-8000-000000000001",
+      "name": "When chat message received"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are ShopEase's AI Customer Support Assistant.\n\nYour responsibilities:\n1. Answer customer questions about ShopEase products, prices, shipping, returns, and refunds.\n2. Always use the ShopEase Knowledge Base tool to retrieve relevant information before answering.\n3. Answer only using information retrieved from the knowledge base.\n4. Never invent product details, prices, policies, or delivery information.\n5. If the requested information is not available, politely say: \"Sorry, I couldn't find this information in the ShopEase knowledge base.\"\n6. Keep your answers clear, friendly, and concise.\n7. Do not make assumptions about customer orders or personal information."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [-384, -32],
+      "id": "00000000-0000-4000-8000-000000000002",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [-512, 176],
+      "id": "00000000-0000-4000-8000-000000000003",
+      "name": "Google Gemini Chat Model"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Search the ShopEase knowledge base to find accurate information about products, prices, shipping policies, return policies, and refunds. Always use this tool when the customer asks questions related to ShopEase. Answer only using the retrieved information. If the information is not found, clearly tell the customer that it is not available in the knowledge base.",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "shopease-knowledge-base",
+          "mode": "list",
+          "cachedResultName": "shopease-knowledge-base"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.4,
+      "position": [-192, 208],
+      "id": "00000000-0000-4000-8000-000000000004",
+      "name": "Qdrant Vector Store"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [-288, 368],
+      "id": "00000000-0000-4000-8000-000000000005",
+      "name": "Embeddings Google Gemini"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Qdrant Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Qdrant Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "nodeGroups": [],
+  "tags": []
+}
